@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#150826">
+<title>給怡臻的驚喜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Serif+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  font-family:"Noto Serif TC","Songti TC","PingFang TC","Microsoft JhengHei",serif;
+  background:#150826;color:#F3EDE2;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* ---------- 螢幕容器 ---------- */
+.screen{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  padding:calc(28px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom));
+  opacity:0;visibility:hidden;
+  transition:opacity .55s ease,visibility .55s ease;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  z-index:1;
+}
+.screen.active{opacity:1;visibility:visible;z-index:2}
+
+/* ---------- 開始頁 / 結果頁 ---------- */
+#s-start,#s-result{
+  background:radial-gradient(ellipse at 50% 0%,#33203f 0%,#1a1022 55%,#120a18 100%);
+  justify-content:center;align-items:center;text-align:center;
+}
+.col{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center}
+
+.kicker{
+  font-family:"Cormorant Garamond",serif;
+  font-size:11px;letter-spacing:.44em;text-indent:.44em;
+  color:#C9A860;text-transform:uppercase;margin:0 0 20px;
+}
+.display{
+  font-size:clamp(30px,9vw,38px);font-weight:600;
+  letter-spacing:.12em;text-indent:.12em;
+  margin:0 0 24px;color:#F5EEE1;
+}
+.rule{width:46px;height:1px;background:linear-gradient(90deg,transparent,#C9A860,transparent);margin:0 0 26px}
+.lede{
+  font-size:15px;line-height:2.1;letter-spacing:.08em;
+  color:rgba(245,238,225,.7);margin:0 0 46px;font-weight:300;
+}
+
+.btn{
+  appearance:none;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#F0E2BB 0%,#D4B273 38%,#B8934E 68%,#E4CE9C 100%);
+  color:#1a1022;font-family:inherit;
+  font-size:16px;font-weight:600;letter-spacing:.22em;text-indent:.22em;
+  padding:17px 48px;border-radius:999px;
+  box-shadow:0 10px 28px rgba(201,168,96,.26),inset 0 1px 0 rgba(255,255,255,.6);
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.btn:active{transform:scale(.965);box-shadow:0 5px 16px rgba(201,168,96,.2)}
+.btn.wide{width:100%;padding:17px 0;text-indent:.22em}
+
+/* ---------- 答題頁 ---------- */
+#s-quiz{background:radial-gradient(ellipse at 50% 0%,#33203f 0%,#1a1022 55%,#120a18 100%)}
+
+.quiz-head{
+  display:flex;align-items:center;gap:14px;
+  padding-bottom:26px;flex-shrink:0;
+}
+.track{flex:1;height:2px;background:rgba(201,168,96,.18);border-radius:2px;overflow:hidden}
+.fill{
+  height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,#B8934E,#F0E2BB);
+  transition:width .6s cubic-bezier(.3,.8,.3,1);
+}
+.count{
+  font-family:"Cormorant Garamond",serif;
+  font-size:14px;letter-spacing:.1em;color:rgba(201,168,96,.85);
+  font-variant-numeric:tabular-nums;
+}
+.count .sep{margin:0 4px;opacity:.5}
+
+.quiz-main{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding-bottom:20px;
+}
+.q-tag{
+  font-size:11px;letter-spacing:.36em;text-indent:.36em;
+  color:#C9A860;margin:0 0 20px;text-transform:uppercase;
+}
+.q-text{
+  font-size:clamp(21px,6.2vw,26px);font-weight:500;
+  line-height:1.75;letter-spacing:.06em;
+  margin:0 0 34px;color:#F5EEE1;
+}
+.field{
+  position:relative;margin-bottom:18px;
+}
+#q-input{
+  width:100%;font-family:inherit;font-size:17px;letter-spacing:.08em;
+  padding:16px 18px;border-radius:12px;
+  background:rgba(245,238,225,.045);
+  border:1px solid rgba(201,168,96,.3);
+  color:#F5EEE1;outline:none;
+  transition:border-color .25s,background .25s;
+  -webkit-appearance:none;
+}
+#q-input::placeholder{color:rgba(245,238,225,.28);letter-spacing:.1em}
+#q-input:focus{border-color:rgba(201,168,96,.75);background:rgba(245,238,225,.07)}
+#q-input:read-only{opacity:.75}
+#q-input.shake{animation:shake .38s ease}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-7px)}
+  40%{transform:translateX(7px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+
+.hint-toggle{
+  appearance:none;background:none;border:none;padding:6px 0;
+  font-family:inherit;font-size:13px;letter-spacing:.14em;
+  color:rgba(201,168,96,.75);cursor:pointer;
+  border-bottom:1px solid rgba(201,168,96,.28);
+  align-self:flex-start;transition:color .2s,border-color .2s;
+}
+.hint-toggle.open{color:#C9A860;border-color:rgba(201,168,96,.6)}
+.hint{
+  font-size:13.5px;line-height:2;letter-spacing:.06em;
+  color:rgba(245,238,225,.6);font-weight:300;
+  margin:14px 0 0;max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .45s ease,opacity .45s ease,margin .45s ease;
+}
+.hint.show{max-height:160px;opacity:1;margin:16px 0 0}
+
+.quiz-foot{flex-shrink:0;padding-top:8px}
+.feedback{
+  font-size:14px;letter-spacing:.1em;text-align:center;
+  margin:0 0 14px;min-height:20px;font-weight:400;
+  transition:color .3s;
+}
+.feedback.ok{color:#6FCF9A}
+.feedback.no{color:#E08A8A}
+
+/* ---------- 結果頁 ---------- */
+.res-main{
+  font-size:clamp(26px,7.5vw,32px);font-weight:600;
+  letter-spacing:.14em;text-indent:.14em;
+  margin:0 0 16px;color:#F5EEE1;
+}
+.res-sub{
+  font-size:14px;letter-spacing:.14em;
+  color:rgba(245,238,225,.6);margin:0 0 46px;font-weight:300;
+}
+
+/* ---------- 刮刮樂 ---------- */
+#s-scratch{
+  background:radial-gradient(ellipse at 50% 18%,#F9F4EA 0%,#EFE6D5 55%,#E4D8C1 100%);
+  color:#2A2520;
+  justify-content:center;align-items:center;
+  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
+}
+
+.paper-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
+
+.paper{
+  position:relative;width:100%;
+  background:#FBF7EF;
+  border:1px solid rgba(176,141,79,.2);
+  border-radius:16px;
+  padding:38px 24px 34px;
+  box-shadow:0 22px 54px rgba(92,70,34,.15),0 2px 8px rgba(92,70,34,.05);
+  overflow:hidden;
+}
+
+.reveal{display:flex;flex-direction:column;align-items:center;text-align:center}
+.reveal>*{
+  opacity:0;transform:translateY(18px);
+  transition:opacity .9s ease,transform 1.1s cubic-bezier(.2,.75,.3,1);
+}
+.reveal>*.in{opacity:1;transform:translateY(0)}
+
+.r-eyebrow{
+  font-family:"Cormorant Garamond",serif;
+  font-size:10.5px;letter-spacing:.34em;text-indent:.34em;
+  color:#A98C55;margin:0 0 18px;font-weight:400;
+}
+.r-title{
+  font-size:clamp(27px,8vw,33px);font-weight:600;
+  letter-spacing:.16em;text-indent:.16em;
+  margin:0 0 12px;color:#2A2520;
+}
+.r-sub{
+  font-size:13.5px;letter-spacing:.2em;text-indent:.2em;
+  color:#8C7A5C;margin:0;font-weight:300;
+  font-style:italic;
+}
+
+.arch{
+  position:relative;
+  width:min(74%,252px);
+  aspect-ratio:3/4;
+  margin:28px auto 26px;
+  padding:5px;
+  display:grid;
+  background:linear-gradient(150deg,#E4CE9C 0%,#F5E9C9 28%,#B8934E 60%,#EAD9A4 100%);
+  border-radius:50% 50% 10px 10px / 34% 34% 10px 10px;
+  box-shadow:0 14px 30px rgba(120,90,40,.22);
+}
+.arch img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  border-radius:50% 50% 7px 7px / 33% 33% 7px 7px;
+  background:#EAE2D2;
+}
+.arch.empty img{opacity:0}
+.arch.empty::after{
+  content:"請把照片命名為 photo.jpg，\A放在同一個資料夾";
+  white-space:pre;
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;font-size:12px;line-height:2;
+  color:#9A8C74;letter-spacing:.05em;padding:22px;
+}
+
+.heartbeat{
+  width:80%;height:44px;display:block;
+  margin:4px auto 0;overflow:visible;
+}
+.heartbeat path{
+  fill:none;stroke:#B08D4F;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+
+.r-date{
+  font-size:13px;letter-spacing:.16em;
+  color:#6E6046;margin:26px 0 0;font-weight:400;
+}
+
+#foil{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border-radius:16px;
+  touch-action:none;
+  transition:opacity 1s ease;
+  z-index:5;
+  cursor:crosshair;
+}
+#foil.gone{opacity:0;pointer-events:none}
+
+.scratch-tip{
+  font-size:12.5px;letter-spacing:.24em;text-indent:.24em;
+  color:rgba(110,96,70,.7);margin:22px 0 0;
+  transition:opacity .6s;
+}
+
+/* ---------- 閃光回饋 ---------- */
+.flash{
+  position:fixed;inset:0;pointer-events:none;
+  opacity:0;transition:opacity .34s ease;z-index:9999;
+}
+.flash.on{opacity:1}
+.flash.ok{background:radial-gradient(circle at 50% 50%,rgba(70,200,120,.3),transparent 72%)}
+.flash.no{background:radial-gradient(circle at 50% 50%,rgba(225,85,85,.28),transparent 72%)}
+</style>
+</head>
+<body>
+
+<!-- ===================== 開始頁 ===================== -->
+<section class="screen active" id="s-start">
+  <div class="col">
+    <p class="kicker">A Little Surprise</p>
+    <h1 class="display">燈謎挑戰</h1>
+    <div class="rule"></div>
+    <p class="lede">答對三題，<br>才能打開後面的驚喜。</p>
+    <button class="btn" onclick="startQuiz()">開始挑戰</button>
+  </div>
+</section>
+
+<!-- ===================== 答題頁 ===================== -->
+<section class="screen" id="s-quiz">
+  <div class="quiz-head">
+    <div class="track"><div class="fill" id="q-fill"></div></div>
+    <div class="count"><span id="q-cur">1</span><span class="sep">/</span><span id="q-tot">5</span></div>
+  </div>
+
+  <div class="quiz-main">
+    <p class="q-tag" id="q-tag">第 1 題</p>
+    <h2 class="q-text" id="q-text">—</h2>
+    <div class="field">
+      <input id="q-input" type="text" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" placeholder="寫下你的答案">
+    </div>
+    <button class="hint-toggle" id="hint-toggle" onclick="toggleHint()">需要提示</button>
+    <p class="hint" id="q-hint"></p>
+  </div>
+
+  <div class="quiz-foot">
+    <p class="feedback" id="q-feedback"></p>
+    <button class="btn wide" id="q-submit" onclick="submitAnswer()">送出</button>
+  </div>
+</section>
+
+<!-- ===================== 結果頁 ===================== -->
+<section class="screen" id="s-result">
+  <div class="col">
+    <p class="kicker">Result</p>
+    <h1 class="res-main" id="res-main">—</h1>
+    <p class="res-sub" id="res-sub">—</p>
+    <button class="btn" id="res-btn">繼續</button>
+  </div>
+</section>
+
+<!-- ===================== 刮刮樂 ===================== -->
+<section class="screen" id="s-scratch">
+  <div class="paper-wrap">
+    <div class="paper" id="paper">
+      <div class="reveal" id="reveal">
+        <p class="r-eyebrow">A LITTLE ONE IS ON THE WAY</p>
+        <h1 class="r-title">怡臻懷孕了</h1>
+        <p class="r-sub">我們要當爸爸媽媽了</p>
+        <div class="arch" id="arch">
+          <img id="photo" src="photo.jpg" alt="">
+        </div>
+        <svg class="heartbeat" viewBox="0 0 320 64" preserveAspectRatio="none" aria-hidden="true">
+          <path vector-effect="non-scaling-stroke"
+            d="M0 32 H84 L96 32 L106 8 L118 56 L128 24 L136 32 H214 L226 32 L236 12 L248 52 L258 27 L266 32 H320"/>
+        </svg>
+        <p class="r-date">預產期　2027 年 5 月 3 日</p>
+      </div>
+      <canvas id="foil"></canvas>
+    </div>
+    <p class="scratch-tip" id="scratch-tip">用手指刮開金箔</p>
+  </div>
+  <input type="file" id="photo-picker" accept="image/*" hidden>
+</section>
+
+<script>
+/* =========================================================
+   資料
+   ========================================================= */
+const RIDDLES = [
+  { q:"3-2、6-1、4-3、6+4", hint:"把四個算式各自算出來，數字念一遍，剛好是一個成語。", a:["一五一十"] },
+  { q:"一二五六", hint:"從一數到十，少了哪兩個數字？", a:["丟三落四","丢三落四"] },
+  { q:"少了一本書", hint:"「書」的英文是 book。少了一本書，就是缺一……", a:["缺一不可"] },
+  { q:"一隻熊朝你走過來", hint:"「熊」的英文是 bear。", a:["有備而來","有备而来","有bear來","有bear来"] },
+  { q:"雙火雙水", hint:"兩個火、兩個水疊在一起，是台灣的一個地名。", a:["淡水"] },
+  { q:"雨後春筍", hint:"下過雨之後，筍子長得又快又多。台灣哪個地名裡有「竹」？", a:["新竹"] },
+  { q:"兩好球三壞球", hint:"這種球數，對投手來說真的很「難投」。", a:["南投","難投","难投"] },
+  { q:"蜘蛛結網", hint:"蜘蛛結網要「吐絲」，聽起來像一種早餐。", a:["吐司","吐絲","吐丝"] },
+  { q:"此物真稀奇，圓圓很好吃，人家皮包骨，它卻骨包皮", hint:"什麼食物是「骨頭包在皮裡面」？", a:["雞蛋","鸡蛋","蛋"] },
+  { q:"狼來了", hint:"狼來了，羊當然要「逃」。", a:["楊桃","杨桃"] },
+  { q:"什麼水果視力最差？", hint:"眼睛看不見叫「盲」，跟某種水果同音。", a:["芒果"] },
+  { q:"一朵花兒手中拿，日曬雨淋也用它", hint:"下雨天會從包包裡拿出來的那個東西。", a:["雨傘","雨伞","傘","伞"] },
+  { q:"一個入口，兩條隧道，只進一條，無法使用", hint:"每天穿在身上的衣物。", a:["褲子","裤子"] },
+  { q:"說牠是條牛，無法拉車走，說牠力氣小，卻能背屋走。", hint:"背著自己的家，慢慢爬的小動物。", a:["蝸牛","蜗牛"] }
+];
+
+const BONUS = [
+  { q:"請問怡臻跟正寬的乾兒子小名是什麼？", hint:"兩個字，疊字，和「船」有關。", a:["帆帆","帆"] },
+  { q:"請問怡臻主要的教學樂器是什麼？", hint:"黑白鍵，需要坐著彈。", a:["鋼琴","钢琴","piano"] },
+  { q:"請問正寬的星座是？", hint:"生日在 11/23 到 12/21 之間。", a:["射手座","射手","sagittarius"] }
+];
+
+/* =========================================================
+   工具
+   ========================================================= */
+const $ = id => document.getElementById(id);
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function norm(s){
+  return String(s)
+    .toLowerCase()
+    .replace(/[\s\u3000]/g,'')
+    .replace(/[，。、！？!?.,;；:：'"'"「」『』（）()\[\]{}<>《》\-—_~～]/g,'');
+}
+
+function isCorrect(input, answers){
+  const n = norm(input);
+  if(!n) return false;
+  return answers.some(a=>{
+    const t = norm(a);
+    if(!t) return false;
+    if(n === t) return true;
+    if(t.length >= 2 && n.includes(t)) return true;
+    return false;
+  });
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.toggle('active', s.id === id);
+  });
+  window.scrollTo(0,0);
+}
+
+function flash(type){
+  const d = document.createElement('div');
+  d.className = 'flash ' + type;
+  document.body.appendChild(d);
+  requestAnimationFrame(()=>d.classList.add('on'));
+  setTimeout(()=>{
+    d.classList.remove('on');
+    setTimeout(()=>d.remove(), 420);
+  }, 300);
+}
+
+/* =========================================================
+   燈謎流程
+   ========================================================= */
+let mode = 'quiz';      // 'quiz' | 'bonus'
+let deck = [];
+let qi = 0;
+let correctCount = 0;
+let locked = false;
+
+const qFill = $('q-fill'), qCur = $('q-cur'), qTot = $('q-tot');
+const qTag = $('q-tag'), qText = $('q-text'), qHint = $('q-hint');
+const hintToggle = $('hint-toggle');
+const input = $('q-input'), submitBtn = $('q-submit'), feedback = $('q-feedback');
+
+function startQuiz(){
+  mode = 'quiz';
+  deck = shuffle(RIDDLES.slice()).slice(0,5);
+  qi = 0; correctCount = 0;
+  showScreen('s-quiz');
+  renderQ();
+}
+
+function startBonus(){
+  mode = 'bonus';
+  deck = BONUS.slice();
+  qi = 0; correctCount = 0;
+  showScreen('s-quiz');
+  renderQ();
+}
+
+function renderQ(){
+  locked = false;
+  const item = deck[qi];
+
+  qTag.textContent = (mode === 'quiz') ? '第 ' + (qi+1) + ' 題' : '驚喜題 ' + (qi+1);
+  qCur.textContent = qi + 1;
+  qTot.textContent = deck.length;
+  qText.textContent = item.q;
+  qHint.textContent = item.hint;
+  qHint.classList.remove('show');
+  hintToggle.classList.remove('open');
+  hintToggle.textContent = '需要提示';
+
+  input.value = '';
+  input.readOnly = false;
+  submitBtn.textContent = '送出';
+  feedback.textContent = '';
+  feedback.className = 'feedback';
+
+  qFill.style.width = (qi / deck.length * 100) + '%';
+}
+
+function toggleHint(){
+  qHint.classList.toggle('show');
+  const open = qHint.classList.contains('show');
+  hintToggle.classList.toggle('open', open);
+  hintToggle.textContent = open ? '收起提示' : '需要提示';
+}
+
+function submitAnswer(){
+  if(locked){
+    qi++;
+    if(qi >= deck.length) finishRound();
+    else renderQ();
+    return;
+  }
+
+  const val = input.value.trim();
+  if(!val){
+    input.classList.add('shake');
+    setTimeout(()=>input.classList.remove('shake'), 400);
+    return;
+  }
+
+  const item = deck[qi];
+  const ok = isCorrect(val, item.a);
+
+  locked = true;
+  input.readOnly = true;
+
+  if(ok){
+    correctCount++;
+    feedback.textContent = '答對了';
+    feedback.className = 'feedback ok';
+    flash('ok');
+  }else{
+    feedback.textContent = '答案是「' + item.a[0] + '」';
+    feedback.className = 'feedback no';
+    flash('no');
+  }
+
+  qFill.style.width = ((qi+1) / deck.length * 100) + '%';
+  submitBtn.textContent = (qi === deck.length - 1) ? '看結果' : '下一題';
+}
+
+input.addEventListener('keydown', e=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    submitAnswer();
+  }
+});
+
+function finishRound(){
+  if(mode === 'quiz'){
+    if(correctCount >= 3){
+      showResult('答對 ' + correctCount + ' 題', '過關了，進入驚喜題目', '繼續',
+        ()=> startBonus());
+    }else{
+      showResult('只答對 ' + correctCount + ' 題', '需要至少三題，再試一次吧', '重新挑戰',
+        ()=> startQuiz());
+    }
+  }else{
+    if(correctCount === 3){
+      showResult('全部答對', '驚喜要出現了', '揭曉',
+        ()=>{ showScreen('s-scratch'); initScratch(); });
+    }else{
+      showResult('答對 ' + correctCount + ' 題', '三題都要對，才能打開驚喜', '再試一次',
+        ()=> startBonus());
+    }
+  }
+}
+
+function showResult(main, sub, btnText, cb){
+  $('res-main').textContent = main;
+  $('res-sub').textContent = sub;
+  const btn = $('res-btn');
+  btn.textContent = btnText;
+  btn.onclick = cb;
+  showScreen('s-result');
+}
+
+/* =========================================================
+   刮刮樂
+   ========================================================= */
+const paper    = $('paper');
+const canvas   = $('foil');
+const ctx      = canvas.getContext('2d', { willReadFrequently: true });
+const reveal   = $('reveal');
+const arch     = $('arch');
+const photo    = $('photo');
+const tip      = $('scratch-tip');
+
+let revealed  = false;
+let scratching = false;
+let lastPt    = null;
+let moveTicks = 0;
+
+/* ---- 雜訊貼圖 ---- */
+const noiseCanvas = (()=>{
+  const c = document.createElement('canvas');
+  c.width = c.height = 140;
+  const x = c.getContext('2d');
+  const d = x.createImageData(140, 140);
+  for(let i=0;i<d.data.length;i+=4){
+    const v = Math.random() * 255;
+    d.data[i] = d.data[i+1] = d.data[i+2] = v;
+    d.data[i+3] = 30;
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+})();
+
+/* ---- 畫金箔 ---- */
+function drawFoil(w, h){
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, w, h);
+
+  // 金屬漸層
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0.00, '#C9A860');
+  g.addColorStop(0.18, '#EEDCA9');
+  g.addColorStop(0.34, '#B8934E');
+  g.addColorStop(0.50, '#F0E2B8');
+  g.addColorStop(0.66, '#C2A05A');
+  g.addColorStop(0.82, '#EAD9A4');
+  g.addColorStop(1.00, '#A8843F');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  // 斜向光帶
+  const s = ctx.createLinearGradient(0, 0, w * 0.95, h * 0.55);
+  s.addColorStop(0.00, 'rgba(255,255,255,0)');
+  s.addColorStop(0.40, 'rgba(255,255,255,.18)');
+  s.addColorStop(0.50, 'rgba(255,255,255,.32)');
+  s.addColorStop(0.60, 'rgba(255,255,255,.16)');
+  s.addColorStop(1.00, 'rgba(255,255,255,0)');
+  ctx.fillStyle = s;
+  ctx.fillRect(0, 0, w, h);
+
+  // 細雜訊
+  ctx.globalAlpha = 0.55;
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.fillStyle = ctx.createPattern(noiseCanvas, 'repeat');
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+
+  // 邊緣柔化
+  const vg = ctx.createRadialGradient(
+    w/2, h/2, Math.min(w,h) * 0.18,
+    w/2, h/2, Math.max(w,h) * 0.78
+  );
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(88,64,20,.26)');
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, w, h);
+}
+
+/* ---- 初始化畫布 ---- */
+function setupCanvas(){
+  const r = paper.getBoundingClientRect();
+  if(!r.width || !r.height) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width  = Math.round(r.width  * dpr);
+  canvas.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawFoil(r.width, r.height);
+}
+
+/* ---- 刮除 ---- */
+function localPos(e){
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function scratchDot(x, y){
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(x, y, 27, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function scratchLine(a, b){
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.lineWidth = 48;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+}
+
+function scratchedRatio(){
+  const w = canvas.width, h = canvas.height;
+  if(!w || !h) return 0;
+  const data = ctx.getImageData(0, 0, w, h).data;
+  let clear = 0, total = 0;
+  for(let i = 3; i < data.length; i += 64){
+    total++;
+    if(data[i] < 40) clear++;
+  }
+  return total ? clear / total : 0;
+}
+
+function checkProgress(){
+  if(revealed) return;
+  if(scratchedRatio() >= 0.55) doReveal();
+}
+
+/* ---- 揭曉 ---- */
+function doReveal(){
+  if(revealed) return;
+  revealed = true;
+
+  canvas.classList.add('gone');
+  setTimeout(()=>{ canvas.style.display = 'none'; }, 1050);
+  tip.style.opacity = '0';
+
+  // 內容由下而上依序浮現
+  const items = Array.from(reveal.children);
+  items.forEach((el, i)=>{
+    setTimeout(()=>el.classList.add('in'), 360 + i * 480);
+  });
+
+  // 心跳線緩慢繪製
+  const path = document.querySelector('.heartbeat path');
+  const len = path.getTotalLength();
+  path.style.transition = 'none';
+  path.style.strokeDasharray = len;
+  path.style.strokeDashoffset = len;
+  const heartDelay = 360 + 3 * 480;
+  setTimeout(()=>{
+    path.style.transition = 'stroke-dashoffset 3s cubic-bezier(.35,0,.2,1)';
+    path.style.strokeDashoffset = 0;
+  }, heartDelay);
+
+  playChime();
+  if(navigator.vibrate) navigator.vibrate(20);
+}
+
+/* ---- 音效 ---- */
+function playChime(){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ac = new AC();
+    if(ac.state === 'suspended') ac.resume();
+    const now = ac.currentTime;
+
+    [880, 1318.51].forEach((freq, i)=>{
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t0 = now + i * 0.07;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.13, t0 + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.2);
+      osc.connect(gain).connect(ac.destination);
+      osc.start(t0);
+      osc.stop(t0 + 2.4);
+    });
+  }catch(e){ /* 忽略 */ }
+}
+
+/* ---- 事件綁定 ---- */
+canvas.addEventListener('pointerdown', e=>{
+  if(revealed) return;
+  e.preventDefault();
+  scratching = true;
+  lastPt = localPos(e);
+  scratchDot(lastPt.x, lastPt.y);
+  if(canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointermove', e=>{
+  if(!scratching || revealed) return;
+  e.preventDefault();
+  const p = localPos(e);
+  scratchLine(lastPt, p);
+  lastPt = p;
+  if(++moveTicks % 6 === 0) checkProgress();
+});
+
+function endStroke(e){
+  if(!scratching) return;
+  scratching = false;
+  lastPt = null;
+  checkProgress();
+}
+canvas.addEventListener('pointerup', endStroke);
+canvas.addEventListener('pointercancel', endStroke);
+canvas.addEventListener('pointerleave', endStroke);
+
+/* ---- 初始化刮刮樂 ---- */
+function initScratch(){
+  revealed = false;
+  scratching = false;
+  lastPt = null;
+  moveTicks = 0;
+
+  canvas.classList.remove('gone');
+  canvas.style.display = '';
+  tip.style.opacity = '1';
+
+  Array.from(reveal.children).forEach(el=>el.classList.remove('in'));
+
+  const path = document.querySelector('.heartbeat path');
+  path.style.transition = 'none';
+  path.style.strokeDasharray = '';
+  path.style.strokeDashoffset = '';
+
+  // 等版面穩定後再量尺寸
+  const afterLayout = ()=>{
+    requestAnimationFrame(()=>requestAnimationFrame(setupCanvas));
+  };
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(afterLayout);
+  else afterLayout();
+}
+
+/* ---- 照片：載入失敗提示 / 點擊更換 ---- */
+photo.addEventListener('error', ()=> arch.classList.add('empty'));
+photo.addEventListener('load', ()=> arch.classList.remove('empty'));
+
+const picker = $('photo-picker');
+photo.addEventListener('click', ()=>{
+  if(revealed) picker.click();
+});
+picker.addEventListener('change', e=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  photo.src = URL.createObjectURL(f);
+  arch.classList.remove('empty');
+  if(!revealed) setTimeout(setupCanvas, 120);
+});
+
+/* ---- 視窗變動時重新繪製（僅在尚未刮開時） ---- */
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  if(revealed) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(setupCanvas, 200);
+});
+</script>
+</body>
+</html>
